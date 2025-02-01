@@ -117,7 +117,7 @@ resource "aws_vpc_endpoint" "ecr-api-endpoint" {
 # ECR Repositories
 ###################
 resource "aws_ecr_repository" "frontend" {
-  name                 = "frontend"
+  name                 = "frontend_ecr_repo"
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
@@ -127,7 +127,7 @@ resource "aws_ecr_repository" "frontend" {
 }
 
 resource "aws_ecr_repository" "backend" {
-  name                 = "backend"
+  name                 = "backend_ecr_repo"
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
@@ -141,7 +141,7 @@ resource "aws_ecr_repository" "backend" {
 ################
 # Create an EKS cluster
 resource "aws_eks_cluster" "main" {
-  name     = "cluster"
+  name     = "eks_cluster_project4"
   version  = var.k8s_version
   role_arn = aws_iam_role.eks_cluster.arn
   vpc_config {
