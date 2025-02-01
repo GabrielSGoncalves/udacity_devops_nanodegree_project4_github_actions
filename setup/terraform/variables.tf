@@ -17,3 +17,13 @@ variable "private_az" {
   description = "Change this to a letter a-f only if you encounter an error during setup"
   default     = "b"
 }
+
+variable "AWS_ACCESS_KEY" {
+  type        = string
+  description = "AWS Access Key"
+}
+
+variable "AWS_SECRET_KEY" {
+  type        = string
+  description = "AWS Secret Key"
+}
