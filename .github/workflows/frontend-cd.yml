@@ -1,11 +1,11 @@
 name: Frontend CD
 
-pon:
+on:
   push:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - 'starter/frontend/**'
   workflow_dispatch:
 
 env:
