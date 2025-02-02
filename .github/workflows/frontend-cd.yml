@@ -16,6 +16,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    environment: project4_movie_picture
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
