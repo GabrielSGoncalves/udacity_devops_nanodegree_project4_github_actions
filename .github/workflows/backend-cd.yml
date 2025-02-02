@@ -1,10 +1,8 @@
 name: Backend CD
 
-on:
-  #pull_request:
-  #  branches: [ main ]
-  #  paths:
-  #    - 'starter/backend/**'
+push:
+    branches:
+      - main
   workflow_dispatch:
 
 env:
@@ -84,7 +82,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   deploy:
-    name: Deploy to Kubernetes
+    name:  
     needs: build
     runs-on: ubuntu-latest
     environment: project4_movie_picture
