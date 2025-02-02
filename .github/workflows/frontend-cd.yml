@@ -1,10 +1,6 @@
 name: Frontend CD
 
 on:
-  #push:
-  #  branches: [ main ]
-  #  paths:
-  #    - 'frontend/**'
   workflow_dispatch:
 
 env:
@@ -17,6 +13,9 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     environment: project4_movie_picture
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,6 +37,10 @@ jobs:
     name: Build and Deploy
     needs: test
     runs-on: ubuntu-latest
+    environment: project4_movie_picture
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
