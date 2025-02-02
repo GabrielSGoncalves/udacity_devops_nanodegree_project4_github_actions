@@ -1,8 +1,11 @@
 name: Frontend CD
 
-push:
+pon:
+  push:
     branches:
-    - main
+      - main
+    paths:
+      - 'frontend/**'
   workflow_dispatch:
 
 env:

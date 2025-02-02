@@ -1,8 +1,11 @@
 name: Backend CD
 
-push:
+on:
+  push:
     branches:
-    - main
+      - main
+    paths:
+      - 'frontend/**'
   workflow_dispatch:
 
 env:
