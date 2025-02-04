@@ -12,8 +12,10 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: frontend_ecr_repo
   EKS_CLUSTER: eks_cluster_project4
+  REACT_APP_MOVIE_API_URL: http://localhost:5000
 
 jobs:
+  
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -21,6 +23,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,12 +43,15 @@ jobs:
 
   build-and-deploy:
     name: Build and Deploy
-    needs: test
+    needs:
+      - lint
+      - test
     runs-on: ubuntu-latest
     environment: project4_movie_picture
     permissions:
       id-token: write
       contents: read
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -57,32 +63,32 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Build the docker image
+        run: |
+          IMAGE_NAME=${{ secrets.ECR_REPOSITORY }}
+          docker build \
+            --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL \
+            -t $IMAGE_NAME:${GITHUB_SHA::7} \
+            .
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+      
+      - name: Push to Amazon ECR
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG starter/frontend
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $IMAGE_NAME:${GITHUB_SHA::7} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:${GITHUB_SHA::7}
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:${GITHUB_SHA::7}
 
-      - name: Update kubeconfig
+      - name: Configure kubectl
         run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+          aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
 
-      - name: Install kustomize
+      - name: Deploy to EKS
         run: |
-          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
-          sudo mv kustomize /usr/local/bin/
+          kubectl set image deployment/frontend frontend=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_NAME:${GITHUB_SHA::7}
+          kubectl rollout status deployment/frontend
 
-      - name: Deploy to Kubernetes
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Get Frontend Service URL
         run: |
-          cd starter/frontend/k8s
-          kustomize edit set image frontend=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          kustomize build | kubectl apply -f -
+          kubectl get svc -A
