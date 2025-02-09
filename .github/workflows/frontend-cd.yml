@@ -110,14 +110,20 @@ jobs:
       - name: Configure kubectl
         run: |
           aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
-
-      - name: Deploy to EKS
+  
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+      
+      - name: Deploy manifests
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          kubectl set image deployment/frontend frontend=$ECR_REGISTRY.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-          kubectl rollout status deployment/frontend
+          cd starter/frontend/k8s
+          kustomize edit set image mp-backend=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          kustomize build | kubectl apply -f -
 
       - name: Get Frontend Service URL
         run: |
