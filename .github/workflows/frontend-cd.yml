@@ -12,7 +12,6 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: frontend_ecr_repo
   EKS_CLUSTER: eks_cluster_project4
-  REACT_APP_MOVIE_API_URL: http://localhost:5000
 
 jobs:
   
@@ -64,8 +63,9 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Build the docker image
+        env:
+          REACT_APP_MOVIE_API_URL: ${{ secrets.REACT_APP_MOVIE_API_URL }} 
         run: |
-          IMAGE_NAME=${{ secrets.ECR_REPOSITORY }}
           docker build \
             --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL \
             -t $IMAGE_NAME:${GITHUB_SHA::7} \
